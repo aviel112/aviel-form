@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>אביאל עמירה — טופס הצטרפות</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0c0c0c;
+      color: #f0f0f0;
+      min-height: 100vh;
+      padding-bottom: 60px;
+    }
+
+    /* ── header ── */
+    .hero {
+      background: #111;
+      border-bottom: 1px solid #222;
+      padding: 40px 20px 32px;
+      text-align: center;
+    }
+    .avatar {
+      width: 72px; height: 72px; border-radius: 50%;
+      background: linear-gradient(135deg, #f97316, #ea580c);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 16px;
+      font-size: 28px; font-weight: 900; color: #fff;
+      box-shadow: 0 0 32px rgba(249,115,22,.35);
+    }
+    .hero h1 { font-size: 26px; font-weight: 900; letter-spacing: -.5px; margin-bottom: 6px; }
+    .hero .sub { color: #f97316; font-size: 13px; font-weight: 700; margin-bottom: 14px; }
+    .hero .desc { color: #666; font-size: 13px; line-height: 1.6; max-width: 280px; margin: 0 auto; }
+
+    /* ── form ── */
+    form {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 32px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 36px;
+    }
+
+    /* ── section ── */
+    .section { display: flex; flex-direction: column; gap: 20px; }
+    .section-header {
+      display: flex; align-items: center; gap: 10px;
+    }
+    .section-label {
+      color: #f97316; font-size: 11px; font-weight: 800;
+      letter-spacing: .12em; text-transform: uppercase; white-space: nowrap;
+    }
+    .section-line { flex: 1; height: 1px; background: #222; }
+
+    /* ── field ── */
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field label { font-size: 13px; font-weight: 600; color: #f0f0f0; }
+    .field label .req { color: #f97316; font-size: 11px; margin-right: 3px; }
+    .field .sub { color: #555; font-size: 12px; margin-top: -2px; }
+    .err-msg { color: #f87171; font-size: 11px; font-weight: 600; display: none; }
+    .field.has-error .err-msg { display: block; }
+
+    /* ── inputs ── */
+    input, textarea {
+      width: 100%;
+      background: #1c1c1c;
+      border: 1px solid #272727;
+      border-radius: 10px;
+      padding: 11px 14px;
+      color: #f0f0f0;
+      font-size: 14px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color .15s;
+    }
+    input:focus, textarea:focus { border-color: #ea580c; }
+    input.error, textarea.error { border-color: #f87171; }
+    textarea { resize: none; }
+    input[type=number] { text-align: center; padding-inline: 8px; }
+
+    .instagram-wrap { position: relative; }
+    .instagram-wrap .at {
+      position: absolute; left: 13px; top: 50%; transform: translateY(-50%);
+      color: #555; font-weight: 700; font-size: 14px; pointer-events: none;
+    }
+    .instagram-wrap input { padding-left: 30px; }
+
+    /* ── grid helpers ── */
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .grid3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; }
+
+    /* ── toggle buttons ── */
+    .toggle-group { display: grid; gap: 8px; }
+    .cols1 { grid-template-columns: 1fr; }
+    .cols2 { grid-template-columns: 1fr 1fr; }
+    .cols4 { grid-template-columns: repeat(4,1fr); }
+
+    .btn-toggle {
+      padding: 10px 8px;
+      border-radius: 10px;
+      font-size: 13px; font-weight: 700;
+      border: 1px solid #272727;
+      background: #1c1c1c;
+      color: #999;
+      cursor: pointer;
+      transition: all .15s;
+      position: relative;
+      text-align: center;
+    }
+    .btn-toggle:hover { border-color: #444; color: #ccc; }
+    .btn-toggle.active {
+      background: linear-gradient(135deg,#f97316,#ea580c);
+      color: #fff;
+      border-color: #f97316;
+      box-shadow: 0 0 16px rgba(249,115,22,.3);
+    }
+    .btn-toggle.disabled {
+      background: #141414; color: #333; border-color: #1e1e1e; cursor: not-allowed;
+    }
+    .check-mark {
+      position: absolute; top: 5px; left: 8px;
+      font-size: 10px; font-weight: 900; color: #fff;
+    }
+
+    /* ── submit ── */
+    .btn-submit {
+      width: 100%; padding: 16px 24px;
+      background: linear-gradient(135deg,#f97316,#ea580c);
+      color: #fff; font-size: 16px; font-weight: 900;
+      border: none; border-radius: 14px; cursor: pointer;
+      box-shadow: 0 4px 24px rgba(249,115,22,.35);
+      transition: opacity .2s;
+      letter-spacing: .02em;
+    }
+    .btn-submit:disabled { opacity: .5; cursor: not-allowed; }
+    .privacy { color: #444; font-size: 11px; text-align: center; margin-top: 4px; }
+
+    /* ── error banner ── */
+    .banner-err {
+      background: rgba(248,113,113,.08);
+      border: 1px solid rgba(248,113,113,.25);
+      border-radius: 12px; padding: 12px 16px;
+      color: #f87171; font-size: 13px; text-align: center;
+      display: none;
+    }
+
+    /* ── success ── */
+    .success-screen {
+      min-height: 100vh; display: flex; align-items: center;
+      justify-content: center; padding: 20px;
+      background: #0c0c0c;
+    }
+    .success-card {
+      background: #141414; border: 1px solid #222;
+      border-radius: 24px; padding: 40px 32px;
+      max-width: 380px; width: 100%; text-align: center;
+    }
+    .success-icon {
+      width: 80px; height: 80px; border-radius: 50%;
+      background: linear-gradient(135deg,#f97316,#ea580c);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 24px;
+      box-shadow: 0 0 40px rgba(249,115,22,.4);
+      font-size: 36px;
+    }
+    .success-card h2 { font-size: 24px; font-weight: 900; margin-bottom: 12px; }
+    .success-card p { color: #888; font-size: 14px; line-height: 1.7; }
+    .success-brand {
+      margin-top: 28px; background: #0f0f0f;
+      border: 1px solid #222; border-radius: 14px; padding: 16px 20px;
+    }
+    .success-brand strong { color: #f97316; font-size: 13px; display: block; }
+    .success-brand span { color: #555; font-size: 12px; }
+
+    @media (max-width: 400px) {
+      .cols4 { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- SUCCESS SCREEN (hidden by default) -->
+<div class="success-screen" id="successScreen" style="display:none">
+  <div class="success-card">
+    <div class="success-icon">✓</div>
+    <h2>הפרטים התקבלו!</h2>
+    <p>תודה רבה ואיזה כיף שעשית את הצעד הראשון בלהשקיע בעצמך!<br><br>אני אחזור אליך בהקדם האפשרי 💪🏽</p>
+    <div class="success-brand">
+      <strong>אביאל עמירה — בונה לך אופי, לא רק גוף!</strong>
+      <span>הכוח האמיתי נמצא בראש.</span>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN FORM -->
+<div id="mainContent">
+  <div class="hero">
+    <div class="avatar">א</div>
+    <h1>אביאל עמירה</h1>
+    <div class="sub">מאמן כושר ויועץ תזונה · ליווי אחד על אחד</div>
+    <div class="desc">מלא את הפרטים ואחזור אליך בהקדם לפגישת היכרות חינם</div>
+  </div>
+
+  <form id="leadForm" novalidate>
+
+    <!-- ── פרטים אישיים ── -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-label">פרטים אישיים</span>
+        <div class="section-line"></div>
+      </div>
+
+      <div class="field" id="f-name">
+        <label>שם מלא <span class="req">*</span></label>
+        <input type="text" id="name" placeholder="ישראל ישראלי" />
+        <span class="err-msg">שם חובה</span>
+      </div>
+
+      <div class="grid2">
+        <div class="field" id="f-phone">
+          <label>טלפון <span class="req">*</span></label>
+          <input type="tel" id="phone" placeholder="050-0000000" />
+          <span class="err-msg">טלפון חובה</span>
+        </div>
+        <div class="field" id="f-email">
+          <label>מייל <span class="req">*</span></label>
+          <input type="email" id="email" placeholder="example@gmail.com" />
+          <span class="err-msg">מייל לא תקין</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>אינסטגרם</label>
+        <div class="sub">אופציונלי</div>
+        <div class="instagram-wrap">
+          <span class="at">@</span>
+          <input type="text" id="instagram" placeholder="username" />
+        </div>
+      </div>
+
+      <div class="grid3">
+        <div class="field" id="f-age">
+          <label>גיל <span class="req">*</span></label>
+          <input type="number" id="age" placeholder="25" min="10" max="100" />
+          <span class="err-msg">חובה</span>
+        </div>
+        <div class="field" id="f-height">
+          <label>גובה ס"מ <span class="req">*</span></label>
+          <input type="number" id="height" placeholder="175" min="100" max="230" />
+          <span class="err-msg">חובה</span>
+        </div>
+        <div class="field" id="f-weight">
+          <label>משקל ק"ג <span class="req">*</span></label>
+          <input type="number" id="weight" placeholder="75" min="30" max="300" />
+          <span class="err-msg">חובה</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── רקע גופני ── -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-label">רקע גופני</span>
+        <div class="section-line"></div>
+      </div>
+
+      <div class="field" id="f-goal">
+        <label>מה המטרה שלך ? <span class="req">*</span></label>
+        <div class="sub">אפשר לבחור יותר מאחת</div>
+        <div class="toggle-group cols2" id="tg-goal" data-multi="true">
+          <button type="button" class="btn-toggle" data-val="fat_loss">ירידה במשקל</button>
+          <button type="button" class="btn-toggle" data-val="muscle">בניית שריר</button>
+          <button type="button" class="btn-toggle" data-val="tone">חיטוב וסיבולת</button>
+          <button type="button" class="btn-toggle" data-val="strength">כוח ועוצמה</button>
+          <button type="button" class="btn-toggle" data-val="health">בריאות כללית</button>
+          <button type="button" class="btn-toggle" data-val="other" data-other-target="goalOther">אחר</button>
+        </div>
+        <input type="text" id="goalOther" placeholder="ספר בחופשיות..." style="margin-top:8px;display:none" />
+        <span class="err-msg">בחר לפחות מטרה אחת</span>
+      </div>
+
+      <div class="field" id="f-activityLevel">
+        <label>רמת פעילות נוכחית <span class="req">*</span></label>
+        <div class="toggle-group cols4" id="tg-activityLevel">
+          <button type="button" class="btn-toggle" data-val="none">לא פעיל</button>
+          <button type="button" class="btn-toggle" data-val="low">קצת פעיל</button>
+          <button type="button" class="btn-toggle" data-val="medium">פעיל</button>
+          <button type="button" class="btn-toggle" data-val="high">ספורטאי</button>
+        </div>
+        <span class="err-msg">בחר רמת פעילות</span>
+      </div>
+
+      <div class="field" id="f-timeSlot">
+        <label>מתי פנוי לאימון ? <span class="req">*</span></label>
+        <div class="toggle-group cols4" id="tg-timeSlot">
+          <button type="button" class="btn-toggle" data-val="morning">בוקר</button>
+          <button type="button" class="btn-toggle" data-val="noon">צהריים</button>
+          <button type="button" class="btn-toggle" data-val="evening">ערב</button>
+          <button type="button" class="btn-toggle" data-val="flexible">גמיש</button>
+        </div>
+        <span class="err-msg">בחר זמינות</span>
+      </div>
+
+      <div class="field" id="f-experience">
+        <label>ותק באימונים <span class="req">*</span></label>
+        <div class="toggle-group cols4" id="tg-experience">
+          <button type="button" class="btn-toggle" data-val="beginner">מתחיל</button>
+          <button type="button" class="btn-toggle" data-val="1-2">1-2 שנים</button>
+          <button type="button" class="btn-toggle" data-val="3-5">3-5 שנים</button>
+          <button type="button" class="btn-toggle" data-val="5plus">מעל 5</button>
+        </div>
+        <span class="err-msg">בחר ותק</span>
+      </div>
+
+      <div class="field" id="f-coachingType">
+        <label>איזה סוג ליווי אתה מחפש ? <span class="req">*</span></label>
+        <div class="toggle-group cols2" id="tg-coachingType">
+          <button type="button" class="btn-toggle" data-val="together">אימון 1-על-1 ביחד במכון</button>
+          <button type="button" class="btn-toggle" data-val="technique">בדיקת טכניקה</button>
+          <button type="button" class="btn-toggle" data-val="online">ליווי אונליין</button>
+          <button type="button" class="btn-toggle" data-val="both">שניהם</button>
+        </div>
+        <span class="err-msg">בחר סוג ליווי</span>
+      </div>
+
+      <div class="field" id="f-trainingType">
+        <label>סוג אימונים שעשית עד היום <span class="req">*</span></label>
+        <div class="toggle-group cols2" id="tg-trainingType">
+          <button type="button" class="btn-toggle" data-val="gym">מכון כושר</button>
+          <button type="button" class="btn-toggle" data-val="other" data-other-target="trainingTypeOther">אחר</button>
+        </div>
+        <input type="text" id="trainingTypeOther" placeholder="ריצה, שחייה, אומנויות לחימה..." style="margin-top:8px;display:none" />
+        <span class="err-msg">בחר סוג אימונים</span>
+      </div>
+    </div>
+
+    <!-- ── שאלות נוספות ── -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-label">שאלות נוספות</span>
+        <div class="section-line"></div>
+      </div>
+
+      <div class="field" id="f-hadCoach">
+        <label>היית בליווי מאמן בעבר ? <span class="req">*</span></label>
+        <div class="toggle-group cols2" id="tg-hadCoach">
+          <button type="button" class="btn-toggle" data-val="yes" data-other-target="hadCoachDetails">כן</button>
+          <button type="button" class="btn-toggle" data-val="no">לא</button>
+        </div>
+        <input type="text" id="hadCoachDetails" placeholder="מה עשיתם, כמה זמן, מה עבד ומה לא..." style="margin-top:8px;display:none" />
+        <span class="err-msg">חובה לבחור</span>
+      </div>
+
+      <div class="field" id="f-medications">
+        <label>אתה נוטל תרופות ? <span class="req">*</span></label>
+        <div class="sub">רק אם רלוונטי לאימון</div>
+        <div class="toggle-group cols2" id="tg-medications">
+          <button type="button" class="btn-toggle" data-val="yes" data-other-target="medicationsDetails">כן</button>
+          <button type="button" class="btn-toggle" data-val="no">לא</button>
+        </div>
+        <input type="text" id="medicationsDetails" placeholder="ציין אם רלוונטי לאימון..." style="margin-top:8px;display:none" />
+        <span class="err-msg">חובה לבחור</span>
+      </div>
+
+      <div class="field" id="f-knowsCalories">
+        <label>אתה יודע כמה קלוריות אתה אוכל ? <span class="req">*</span></label>
+        <div class="toggle-group cols2" id="tg-knowsCalories">
+          <button type="button" class="btn-toggle" data-val="yes">כן</button>
+          <button type="button" class="btn-toggle" data-val="no">לא</button>
+        </div>
+        <span class="err-msg">חובה לבחור</span>
+      </div>
+
+      <div class="field" id="f-hasProgram">
+        <label>אתה עובד עם תוכנית אימונים מסודרת ? <span class="req">*</span></label>
+        <div class="toggle-group cols2" id="tg-hasProgram">
+          <button type="button" class="btn-toggle" data-val="yes">כן</button>
+          <button type="button" class="btn-toggle" data-val="no">לא</button>
+        </div>
+        <span class="err-msg">חובה לבחור</span>
+      </div>
+    </div>
+
+    <!-- ── ספר לי עליך ── -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-label">ספר לי עליך</span>
+        <div class="section-line"></div>
+      </div>
+
+      <div class="field" id="f-injuries">
+        <label>פציעות או מגבלות רפואיות <span class="req">*</span></label>
+        <div class="sub">אם אין — כתוב "אין"</div>
+        <input type="text" id="injuries" placeholder='ברך, גב, כתף... אם אין — "אין"' />
+        <span class="err-msg">נא לציין (אם אין — "אין")</span>
+      </div>
+
+      <div class="field" id="f-expectations">
+        <label>מה הציפיות שלך ממני ומהתהליך ? <span class="req">*</span></label>
+        <div class="sub">תהיה פתוח — ככה אני יכול להתאים לך הכי טוב</div>
+        <textarea id="expectations" rows="4" placeholder="תכתוב בחופשיות..."></textarea>
+        <span class="err-msg">שתף אותי בציפיות שלך</span>
+      </div>
+    </div>
+
+    <!-- ── איך הגעת ── -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-label">איך הגעת אליי</span>
+        <div class="section-line"></div>
+      </div>
+
+      <div class="field">
+        <div class="toggle-group cols2" id="tg-source">
+          <button type="button" class="btn-toggle active" data-val="instagram">אינסטגרם</button>
+          <button type="button" class="btn-toggle" data-val="referral">המלצה</button>
+          <button type="button" class="btn-toggle" data-val="facebook">פייסבוק</button>
+          <button type="button" class="btn-toggle" data-val="walkin">ראיתי אותך במכון</button>
+          <button type="button" class="btn-toggle" data-val="other" data-other-target="sourceOther">אחר</button>
+        </div>
+        <input type="text" id="sourceOther" placeholder="איפה בדיוק שמעת עליי ?" style="margin-top:8px;display:none" />
+      </div>
+    </div>
+
+    <!-- ── submit ── -->
+    <div>
+      <div class="banner-err" id="bannerErr">משהו השתבש. נסה שוב או שלח ווטסאפ ישיר.</div>
+      <button type="submit" class="btn-submit" id="submitBtn">שלח את הפרטים ←</button>
+      <p class="privacy">הפרטים שלך שמורים אצלי בלבד ולא יועברו לאף גורם</p>
+    </div>
+
+  </form>
+</div>
+
+<script>
+  // ── Facebook Pixel ──────────────────────────────────────────
+  !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+  n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+  n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+  t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}
+  (window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+  fbq('init','252890022548419');fbq('track','PageView');
+
+  // ── Toggle groups ───────────────────────────────────────────
+  const selections = {}; // groupId → value or array
+
+  document.querySelectorAll('.toggle-group').forEach(group => {
+    const id = group.id.replace('tg-', '');
+    const isMulti = group.dataset.multi === 'true';
+    selections[id] = isMulti ? [] : null;
+
+    group.querySelectorAll('.btn-toggle').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const val = btn.dataset.val;
+        const otherTarget = btn.dataset.otherTarget;
+
+        if (isMulti) {
+          // multi-select: "אחר" exclusive
+          const hasNonOther = selections[id].some(v => v !== 'other');
+          if (val === 'other' && hasNonOther) return;
+          if (selections[id].includes(val)) {
+            selections[id] = selections[id].filter(v => v !== val);
+          } else {
+            selections[id] = val === 'other'
+              ? ['other']
+              : [...selections[id].filter(v => v !== 'other'), val];
+          }
+          // update "אחר" disabled state
+          const otherBtn = group.querySelector('[data-val="other"]');
+          const nowHasNonOther = selections[id].some(v => v !== 'other');
+          if (otherBtn) {
+            if (nowHasNonOther) { otherBtn.classList.add('disabled'); otherBtn.disabled = true; }
+            else { otherBtn.classList.remove('disabled'); otherBtn.disabled = false; }
+          }
+          group.querySelectorAll('.btn-toggle').forEach(b => {
+            const isActive = selections[id].includes(b.dataset.val);
+            b.classList.toggle('active', isActive && !b.classList.contains('disabled'));
+            // check mark
+            let chk = b.querySelector('.check-mark');
+            if (isActive) { if (!chk) { chk = document.createElement('span'); chk.className='check-mark'; chk.textContent='✓'; b.appendChild(chk); } }
+            else { if (chk) chk.remove(); }
+          });
+        } else {
+          // single select
+          selections[id] = val;
+          group.querySelectorAll('.btn-toggle').forEach(b => b.classList.toggle('active', b.dataset.val === val));
+        }
+
+        // show/hide "other" text input
+        if (otherTarget) {
+          const inp = document.getElementById(otherTarget);
+          if (inp) inp.style.display = (isMulti ? selections[id].includes(val) : selections[id] === val) ? 'block' : 'none';
+        }
+
+        // clear error on change
+        const field = document.getElementById('f-' + id);
+        if (field) field.classList.remove('has-error');
+      });
+    });
+  });
+
+  // default source = instagram
+  selections['source'] = 'instagram';
+
+  // ── Validation ──────────────────────────────────────────────
+  function setErr(fieldId, show) {
+    const el = document.getElementById('f-' + fieldId);
+    if (el) el.classList.toggle('has-error', show);
+  }
+
+  function validate() {
+    let ok = true;
+    function req(id, check) { const v = check !== undefined ? check : document.getElementById(id)?.value.trim(); if (!v) { setErr(id, true); ok = false; } else { setErr(id, false); } }
+
+    req('name'); req('phone');
+    const email = document.getElementById('email')?.value.trim();
+    if (!email || !/\S+@\S+\.\S+/.test(email)) { setErr('email', true); ok = false; } else setErr('email', false);
+    req('age'); req('height'); req('weight');
+    if (!selections['goal']?.length) { setErr('goal', true); ok = false; } else setErr('goal', false);
+    if (!selections['activityLevel']) { setErr('activityLevel', true); ok = false; } else setErr('activityLevel', false);
+    if (!selections['timeSlot']) { setErr('timeSlot', true); ok = false; } else setErr('timeSlot', false);
+    if (!selections['experience']) { setErr('experience', true); ok = false; } else setErr('experience', false);
+    if (!selections['coachingType']) { setErr('coachingType', true); ok = false; } else setErr('coachingType', false);
+    if (!selections['trainingType']) { setErr('trainingType', true); ok = false; } else setErr('trainingType', false);
+    if (!selections['hadCoach']) { setErr('hadCoach', true); ok = false; } else setErr('hadCoach', false);
+    if (!selections['medications']) { setErr('medications', true); ok = false; } else setErr('medications', false);
+    if (!selections['knowsCalories']) { setErr('knowsCalories', true); ok = false; } else setErr('knowsCalories', false);
+    if (!selections['hasProgram']) { setErr('hasProgram', true); ok = false; } else setErr('hasProgram', false);
+    req('injuries'); req('expectations');
+    return ok;
+  }
+
+  // ── Submit ──────────────────────────────────────────────────
+  document.getElementById('leadForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    if (!validate()) {
+      setTimeout(() => {
+        const el = document.querySelector('.has-error');
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 50);
+      return;
+    }
+    const btn = document.getElementById('submitBtn');
+    const banner = document.getElementById('bannerErr');
+    btn.disabled = true; btn.textContent = 'שולח...';
+    banner.style.display = 'none';
+
+    const lead = {
+      name: document.getElementById('name').value.trim(),
+      phone: document.getElementById('phone').value.trim(),
+      email: document.getElementById('email').value.trim(),
+      instagram: document.getElementById('instagram').value.trim(),
+      age: document.getElementById('age').value,
+      height: document.getElementById('height').value,
+      weight: document.getElementById('weight').value,
+      goal: selections['goal'],
+      goalOther: document.getElementById('goalOther').value,
+      activityLevel: selections['activityLevel'],
+      timeSlot: selections['timeSlot'],
+      experience: selections['experience'],
+      coachingType: selections['coachingType'],
+      trainingType: selections['trainingType'],
+      trainingTypeOther: document.getElementById('trainingTypeOther').value,
+      hadCoach: selections['hadCoach'],
+      hadCoachDetails: document.getElementById('hadCoachDetails').value,
+      medications: selections['medications'],
+      medicationsDetails: document.getElementById('medicationsDetails').value,
+      knowsCalories: selections['knowsCalories'],
+      hasProgram: selections['hasProgram'],
+      injuries: document.getElementById('injuries').value.trim(),
+      expectations: document.getElementById('expectations').value.trim(),
+      source: selections['source'] || 'instagram',
+      sourceOther: document.getElementById('sourceOther').value,
+      status: 'new',
+      createdAt: new Date().toISOString().slice(0,10),
+      followUpDate: '',
+    };
+
+    try {
+      const res = await fetch('https://aviel-crm-production.up.railway.app/api/leads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(lead),
+      });
+      if (!res.ok) throw new Error();
+      if (window.fbq) fbq('track', 'Lead', { value: 0, currency: 'ILS' });
+      document.getElementById('mainContent').style.display = 'none';
+      document.getElementById('successScreen').style.display = 'flex';
+    } catch {
+      banner.style.display = 'block';
+      btn.disabled = false; btn.textContent = 'שלח את הפרטים ←';
+    }
+  });
+
+  // clear errors on input
+  document.querySelectorAll('input, textarea').forEach(el => {
+    el.addEventListener('input', () => {
+      const field = el.closest('.field');
+      if (field) field.classList.remove('has-error');
+    });
+  });
+</script>
+</body>
+</html>
