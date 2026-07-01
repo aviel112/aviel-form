@@ -178,9 +178,50 @@
     @media (max-width: 400px) {
       .cols4 { grid-template-columns: 1fr 1fr; }
     }
+
+    /* ── admin edit ── */
+    .admin-gear {
+      position: fixed; bottom: 16px; left: 16px; z-index: 100;
+      width: 40px; height: 40px; border-radius: 50%;
+      background: #1c1c1c; border: 1px solid #2a2a2a; color: #444;
+      font-size: 18px; cursor: pointer; opacity: .3;
+      display: flex; align-items: center; justify-content: center;
+      transition: opacity .2s;
+    }
+    .admin-gear:hover { opacity: 1; }
+    .admin-bar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 101;
+      background: #ea580c; color: #fff; padding: 10px 16px;
+      display: none; align-items: center; justify-content: space-between;
+      font-size: 13px; font-weight: 700; gap: 12px;
+    }
+    .admin-bar.on { display: flex; }
+    .admin-bar button {
+      padding: 7px 16px; border-radius: 8px; border: none; cursor: pointer;
+      font-size: 13px; font-weight: 800; font-family: inherit;
+    }
+    .admin-bar .save { background: #fff; color: #ea580c; }
+    .admin-bar .cancel { background: rgba(255,255,255,.2); color: #fff; }
+    body.editing { padding-top: 44px; }
+    body.editing .editable {
+      outline: 2px dashed rgba(249,115,22,.7); outline-offset: 2px;
+      border-radius: 4px; cursor: text;
+    }
+    body.editing .btn-toggle { pointer-events: none; }
+    body.editing .btn-toggle.editable { pointer-events: auto; }
   </style>
 </head>
 <body>
+
+<!-- ADMIN EDIT -->
+<button class="admin-gear" id="adminGear" title="עריכת מנהל">⚙</button>
+<div class="admin-bar" id="adminBar">
+  <span>מצב עריכה — לחץ על כל טקסט כתום ושנה אותו</span>
+  <div>
+    <button class="save" id="adminSave">שמור</button>
+    <button class="cancel" id="adminCancel">ביטול</button>
+  </div>
+</div>
 
 <!-- SUCCESS SCREEN (hidden by default) -->
 <div class="success-screen" id="successScreen" style="display:none">
@@ -269,8 +310,8 @@
 
       <div class="field" id="f-goal">
         <label>מה המטרה שלך ? <span class="req">*</span></label>
-        <div class="sub">אפשר לבחור יותר מאחת</div>
-        <div class="toggle-group cols2" id="tg-goal" data-multi="true">
+        <div class="sub">בחר את המטרה העיקרית</div>
+        <div class="toggle-group cols2" id="tg-goal">
           <button type="button" class="btn-toggle" data-val="tone">חיטוב</button>
           <button type="button" class="btn-toggle" data-val="muscle">בניית מסת שריר</button>
           <button type="button" class="btn-toggle" data-val="health">בריאות כללית</button>
@@ -460,6 +501,7 @@
 
     group.querySelectorAll('.btn-toggle').forEach(btn => {
       btn.addEventListener('click', () => {
+        if (document.body.classList.contains('editing')) return;
         const val = btn.dataset.val;
         const otherTarget = btn.dataset.otherTarget;
 
@@ -525,7 +567,7 @@
     const email = document.getElementById('email')?.value.trim();
     if (!email || !/\S+@\S+\.\S+/.test(email)) { setErr('email', true); ok = false; } else setErr('email', false);
     req('age'); req('height'); req('weight');
-    if (!selections['goal']?.length) { setErr('goal', true); ok = false; } else setErr('goal', false);
+    if (!selections['goal']) { setErr('goal', true); ok = false; } else setErr('goal', false);
     if (!selections['activityLevel']) { setErr('activityLevel', true); ok = false; } else setErr('activityLevel', false);
     if (!selections['timeSlot']) { setErr('timeSlot', true); ok = false; } else setErr('timeSlot', false);
     if (!selections['experience']) { setErr('experience', true); ok = false; } else setErr('experience', false);
@@ -562,7 +604,7 @@
       age: document.getElementById('age').value,
       height: document.getElementById('height').value,
       weight: document.getElementById('weight').value,
-      goal: selections['goal'],
+      goal: selections['goal'] ? [selections['goal']] : [],
       goalOther: document.getElementById('goalOther').value,
       activityLevel: selections['activityLevel'],
       timeSlot: selections['timeSlot'],
@@ -598,6 +640,59 @@
     } catch {
       banner.style.display = 'block';
       btn.disabled = false; btn.textContent = 'שלח את הפרטים ←';
+    }
+  });
+
+  // ── Admin edit ──────────────────────────────────────────────
+  const API = 'https://aviel-crm-production.up.railway.app';
+  const editables = [];
+  document.querySelectorAll('.btn-toggle').forEach(b => {
+    const g = b.closest('.toggle-group');
+    b.dataset.ek = 'btn:' + (g ? g.id : '?') + ':' + b.dataset.val;
+    editables.push(b);
+  });
+  document.querySelectorAll('.section-label').forEach((s, i) => {
+    s.dataset.ek = 'sec:' + i;
+    editables.push(s);
+  });
+
+  // apply saved label overrides for everyone
+  fetch(API + '/api/form-config').then(r => r.json()).then(cfg => {
+    Object.entries(cfg || {}).forEach(([k, v]) => {
+      const el = document.querySelector('[data-ek="' + k + '"]');
+      if (el && v) el.textContent = v;
+    });
+  }).catch(() => {});
+
+  let adminPass = null;
+  document.getElementById('adminGear').addEventListener('click', () => {
+    const p = prompt('סיסמת מנהל:');
+    if (p !== '040698') { if (p !== null) alert('סיסמה שגויה'); return; }
+    adminPass = p;
+    document.body.classList.add('editing');
+    document.getElementById('adminBar').classList.add('on');
+    editables.forEach(el => { el.classList.add('editable'); el.contentEditable = 'true'; });
+  });
+
+  document.getElementById('adminCancel').addEventListener('click', () => location.reload());
+
+  document.getElementById('adminSave').addEventListener('click', async () => {
+    const labels = {};
+    editables.forEach(el => { labels[el.dataset.ek] = el.textContent.trim(); });
+    const btn = document.getElementById('adminSave');
+    btn.textContent = 'שומר...';
+    try {
+      const res = await fetch(API + '/api/form-config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: adminPass, labels }),
+      });
+      if (!res.ok) throw new Error();
+      alert('נשמר! השינויים חיים לכל מי שנכנס לטופס.');
+      location.reload();
+    } catch {
+      btn.textContent = 'שמור';
+      alert('שגיאה בשמירה. נסה שוב.');
     }
   });
 
