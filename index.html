@@ -622,6 +622,7 @@
       expectations: document.getElementById('expectations').value.trim(),
       source: selections['source'] || 'instagram',
       sourceOther: document.getElementById('sourceOther').value,
+      funnel: new URLSearchParams(location.search).get('from') || 'form',
       status: 'new',
       createdAt: new Date().toISOString().slice(0,10),
       followUpDate: '',
